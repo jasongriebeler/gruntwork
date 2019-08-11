@@ -1,0 +1,13 @@
+# package directories
+node_modules
+
+#intellij
+.idea
+*.iml
+
+# coverage
+coverage
+
+# secrets
+password.txt
+gruntwork-workouts-firebase.json
