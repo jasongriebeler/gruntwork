@@ -34,9 +34,10 @@ const workouts = db.ref("workouts");
     // await page.goto("file:///Users/jgriebeler/Downloads/Grunt%20Work%20Workouts%20%E2%80%A2%20Grunt%20Work.htm");
     // await page.goto("file:///Users/jgriebeler/Downloads/Grunt%20Work%20Workouts%20%E2%80%A2%20Grunt%20Work%20-last.htm");
 
+    let entries = [];
     let advance = true;
     do {
-        await logEntries();
+        entries = entries.concat(await findEntries());
         let nextPage = await page.$("ul.page-numbers li a.next");
         if(nextPage) {
             await nextPage.click();
@@ -46,27 +47,38 @@ const workouts = db.ref("workouts");
             advance = false;
     } while(advance);
 
+    await logEntries(entries);
+
     app.delete()
         .then(browser.close());
 
-    async function logEntries(){
-        // let workoutLinks = await page.$$eval("h3.entry-title > a", anchors => {
-        //     return anchors.map(a => {
-        //         return {
-        //             title: a.innerText,
-        //             node: nodeName(a.innerText),
-        //             link: a.href
-        //         };
-        //     })
-        // });
-        let workoutLinks = [
-            {
-                title: 'W/O – 08.10.19',
-                link: 'file:///Users/jgriebeler/Downloads/W_O%20-%2008.16.19%20%E2%80%A2%20Grunt%20Work.html',
-                node: nodeName('W/O – 08.10.19')
-            }
-        ];
+    async function findEntries(){
+        let workoutLinks = await page.$$eval("h3.entry-title > a", anchors => {
+            return anchors.map(a => {
+                return {
+                    title: a.innerText,
+                    node: a.innerText
+                        .replace(/\./g, '-')
+                        .replace(/\//g, '')
+                        .replace(/\s/g, ''),
+                    link: a.href
+                };
+            })
+        });
+        const entriesExist = await Promise.all(workoutLinks.map(l => childExists(workouts, l.node)));
+        workoutLinks = workoutLinks.filter(l => !entriesExist.find(e => e.node = l.node).exists );
 
+        // return [
+        //     {
+        //         title: 'W/O – 08.10.19',
+        //         link: 'file:///Users/jgriebeler/Downloads/W_O%20-%2008.16.19%20%E2%80%A2%20Grunt%20Work.html',
+        //         node: nodeName('W/O – 08.10.19')
+        //     }
+        // ];
+        return workoutLinks;
+    }
+
+    async function logEntries(workoutLinks){
         const entriesExist = await Promise.all(workoutLinks.map(l => childExists(workouts, l.node)));
         workoutLinks = workoutLinks.filter(l => !entriesExist.find(e => e.node = l.node).exists );
 
@@ -83,7 +95,7 @@ const workouts = db.ref("workouts");
             entry.metaTags = await page.$$eval("div.post_tags a", anchors => {
                 return anchors.map(a => a.innerText);
             });
-            workouts.child(nodeName(entry.title)).set(entry);
+            workouts.child(entry.node).set(entry);
         }
     }
 })();
@@ -92,11 +104,4 @@ async function childExists(ref, child){
     let exists = await ref.child(child).once("value")
         .then(snapshot => snapshot.val() !== null);
     return { node: child, exists: exists };
-}
-
-function nodeName(input){
-    return input
-        .replace(/\./g, '-')
-        .replace(/\//g, '')
-        .replace(/\s/g, '');
 }
