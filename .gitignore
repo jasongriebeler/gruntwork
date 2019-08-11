@@ -11,3 +11,6 @@ coverage
 # secrets
 password.txt
 gruntwork-workouts-firebase.json
+
+package-lock.json
+screenshots
