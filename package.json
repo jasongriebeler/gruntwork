@@ -2,15 +2,15 @@
   "name": "gruntwork",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.js",
+  "main": "src/gruntwork.js",
   "scripts": {
     "test": "test"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "firebase": "^6.3.1",
-    "firebase-admin": "^8.3.0",
-    "puppeteer": "^1.17.0"
+    "firebase-admin": "^8.9.1",
+    "firebase": "^7.6.2",
+    "puppeteer": "^2.0.0"
   }
 }

@@ -14,3 +14,6 @@ gruntwork-workouts-firebase.json
 
 package-lock.json
 screenshots
+
+.vscode
+.history
